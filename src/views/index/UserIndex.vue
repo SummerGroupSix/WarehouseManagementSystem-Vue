@@ -52,7 +52,7 @@
 </template>
 
 <script>
-
+import PubSub from 'pubsub-js';
 export default {
   name: 'UserIndex',
   components: {
@@ -110,6 +110,11 @@ export default {
   mounted(){
     this.getMenuByUserId();
     this.getUserInfo();
+    PubSub.subscribe("updatePermList",(e)=>{
+      console.log(e)
+      console.log("updatePermList");
+      this.getMenuByUserId();
+    })
   }
 }
 </script>

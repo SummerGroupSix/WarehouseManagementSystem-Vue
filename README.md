@@ -1,5 +1,3 @@
-# userservice
-
 ## Project setup
 ```
 yarn install

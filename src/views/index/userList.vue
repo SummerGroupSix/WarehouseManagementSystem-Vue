@@ -27,6 +27,7 @@
         <template slot-scope="scope">
           <el-button type="text" size="small" @click="showModifyForm(scope.row)" v-if="permList.indexOf('user:update')!==-1">修改</el-button>
           <el-button type="text" size="small" @click="deleteData(scope.row)" v-if="permList.indexOf('user:delete')!==-1">删除</el-button>
+          <el-button type="text" size="small" @click="changeRole(scope.row)" v-if="permList.indexOf('user:role')!==-1">分配角色</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -59,6 +60,11 @@
             <el-option label="女" value="女"></el-option>
           </el-select>
         </el-form-item>
+        <!-- <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
+          <el-select v-model="selectRoleList" placeholder="请选择角色" multiple>
+            <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
+          </el-select>
+        </el-form-item> -->
         <el-form-item label="年龄" :label-width="formLabelWidth">
           <el-input v-model="addUser.age" autocomplete="off"></el-input>
         </el-form-item>
@@ -76,7 +82,7 @@
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             >
-            <img v-if="imgUrl" :src="imgUrl" class="avatar">
+            <img v-if="addUser.imgUrl" :src="addUser.imgUrl" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -105,6 +111,11 @@
             <el-option label="女" value="女"></el-option>
           </el-select>
         </el-form-item>
+        <!-- <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
+          <el-select v-model="selectRoleList" placeholder="请选择角色" multiple>
+            <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
+          </el-select>
+        </el-form-item> -->
         <el-form-item label="年龄" :label-width="formLabelWidth">
           <el-input v-model="updateUser.age" autocomplete="off"></el-input>
         </el-form-item>
@@ -122,7 +133,7 @@
             :show-file-list="false"
             :on-success="handleUpdateSuccess"
             >
-            <img v-if="imgUrl" :src="imgUrl" class="avatar">
+            <img v-if="updateUser.imgUrl" :src="updateUser.imgUrl" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -130,6 +141,21 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancelUpdateUser">取 消</el-button>
         <el-button type="primary" @click="modifyUser">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- Form -->
+    <el-dialog title="分配角色" :visible.sync="roleFormVisible">
+      <el-form :model="roleForm">
+        <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
+          <el-select v-model="roleForm.roleId" placeholder="请选择角色" multiple>
+            <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="cancelRoleForm">取 消</el-button>
+        <el-button type="primary" @click="saveRoleForm">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -143,6 +169,9 @@ export default {
       currentPage: 1,
       pageSize:5,
       total:0,
+      roleList:[],
+      // userRoleList:[],
+      roleFormVisible:false,
       username:"",
       addUserFormVisible:false,
       updateUserFormVisible:false,
@@ -153,6 +182,7 @@ export default {
         age:"",
         address:"",
         password:"",
+        roleName:""
       },
       updateUser:{
         username:"",
@@ -160,6 +190,11 @@ export default {
         age:"",
         address:"",
         password:"",
+        roleName:""
+      },
+      roleForm:{
+        userId:"",
+        roleId:[]
       },
       permList:[],
       formLabelWidth:"120px"
@@ -183,6 +218,27 @@ export default {
         if(data.code==200){
           this.total = data.data.total;
           this.tableData = data.data.rows;
+          // this.userRoleList = data.data.rows.map(e=>{
+          //   return {
+          //     "id":e.id,
+          //     "roleList":e.roleList
+          //   };
+          // })
+          // console.log(this.userRoleList)
+        }
+      })
+      .catch(err=>{this.$message.error("请求失败");
+        console.log(err);
+      })
+    },
+    getRole(){
+      //发送请求
+      this.$axios.get('/role/roleNameList')
+      .then(res=>{
+        console.log(res);
+        let data = res.data;
+        if(data.code==200){
+          this.roleList = data.data;
         }
       })
       .catch(err=>{this.$message.error("请求失败");
@@ -233,6 +289,11 @@ export default {
       this.updateUserFormVisible = true;
       this.updateUser = row;
       this.imgUrl = row.imgUrl;
+      // this.userRoleList.forEach((e)=>{
+      //     if(e.id === row.id){
+      //       this.selectRoleList = e.roleList;
+      //     }
+      // });
     },
     handleUpdateSuccess(res,file){
       console.log(res);
@@ -242,15 +303,19 @@ export default {
     },
     cancelUpdateUser(){
       this.updateUserFormVisible = false;
+      
       this.getPage();
     },
     modifyUser(){
+      console.log(this.selectRoleList)
       console.log(this.updateUser);
       this.$axios.post('/user/update',this.updateUser)
       .then(res=>{
         let data = res.data;
         if(data.code === 200){
           this.$message.success(data.msg);
+          this.selectRoleList = "";
+          this.imgUrl = "";
           this.cancelUpdateUser();
         }
         else{
@@ -300,11 +365,52 @@ export default {
         console.log(this.permList);
       })
       .catch(e=>{console.log(e)});
+    },
+    changeRole(row){
+      this.roleFormVisible = true;
+      this.roleForm.userId = row.id;
+
+      this.$axios.get('/user/getUserRoleByUserId',{params:{"userId":row.id}})
+      .then(res=>{
+        let data = res.data;
+        console.log(data);
+        if(data.code==200){
+          this.roleForm.roleId = data.data.map((e)=>{return e.roleId});
+        }
+      })
+      .catch(err=>{this.$message.error("请求失败");
+        console.log(err);
+      })
+      console.log(row)
+    },
+    cancelRoleForm(){
+      this.roleFormVisible = false;
+      console.log(this.roleForm.roleId);
+    },
+    saveRoleForm(){
+      console.log(this.roleForm);
+      let params = {
+        userId:this.roleForm.userId,
+        roleId:this.roleForm.roleId
+      }
+      this.$axios.post('/userRole/update',params)
+      .then(res=>{
+        console.log(res);
+        let data = res.data;
+        if(data.code==200){
+          this.$message.success("分配权限成功");
+        }
+      })
+      .catch(err=>{this.$message.error("请求失败");
+        console.log(err);
+      })
+      this.roleFormVisible = false;
     }
   },
   mounted(){
     this.getPage();
     this.getPermList();
+    this.getRole();
   }
 };
 </script>
