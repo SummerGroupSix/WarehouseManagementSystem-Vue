@@ -25,7 +25,7 @@
       </el-table-column>
       <el-table-column fixed="right" label="操作">
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="showModifyForm(scope.row)" v-if="permList.indexOf('user:update')!==-1">修改</el-button>
+          <el-button type="text" size="small" @click="showModifyForm(scope.row),changeRole2(scope.row)" v-if="permList.indexOf('user:update')!==-1">修改</el-button>
           <el-button type="text" size="small" @click="deleteData(scope.row)" v-if="permList.indexOf('user:delete')!==-1">删除</el-button>
           <el-button type="text" size="small" @click="changeRole(scope.row)" v-if="permList.indexOf('user:role')!==-1">分配角色</el-button>
         </template>
@@ -60,11 +60,11 @@
             <el-option label="女" value="女"></el-option>
           </el-select>
         </el-form-item>
-        <!-- <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
+        <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
           <el-select v-model="selectRoleList" placeholder="请选择角色" multiple>
             <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
           </el-select>
-        </el-form-item> -->
+        </el-form-item>
         <el-form-item label="年龄" :label-width="formLabelWidth">
           <el-input v-model="addUser.age" autocomplete="off"></el-input>
         </el-form-item>
@@ -111,11 +111,13 @@
             <el-option label="女" value="女"></el-option>
           </el-select>
         </el-form-item>
-        <!-- <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
-          <el-select v-model="selectRoleList" placeholder="请选择角色" multiple>
-            <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
-          </el-select>
-        </el-form-item> -->
+        <el-form :model="roleForm">
+          <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
+            <el-select v-model="roleForm.roleId" placeholder="请选择角色" multiple>
+              <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
         <el-form-item label="年龄" :label-width="formLabelWidth">
           <el-input v-model="updateUser.age" autocomplete="off"></el-input>
         </el-form-item>
@@ -168,9 +170,9 @@ export default {
       tableData: [],
       currentPage: 1,
       pageSize:5,
+      selectRoleList:[],
       total:0,
       roleList:[],
-      // userRoleList:[],
       roleFormVisible:false,
       username:"",
       addUserFormVisible:false,
@@ -201,6 +203,7 @@ export default {
     };
   },
   methods:{
+    // 分页查找所有用户
     getPage(){
       let params = {
         pageSize:this.pageSize,
@@ -218,19 +221,13 @@ export default {
         if(data.code==200){
           this.total = data.data.total;
           this.tableData = data.data.rows;
-          // this.userRoleList = data.data.rows.map(e=>{
-          //   return {
-          //     "id":e.id,
-          //     "roleList":e.roleList
-          //   };
-          // })
-          // console.log(this.userRoleList)
         }
       })
       .catch(err=>{this.$message.error("请求失败");
         console.log(err);
       })
     },
+    // 获取所有角色
     getRole(){
       //发送请求
       this.$axios.get('/role/roleNameList')
@@ -255,10 +252,12 @@ export default {
       this.currentPage = val;
       this.getPage();
     },
+    // 关闭新增用户表
     cancelAddUser(){
       this.addUserFormVisible = false;
       this.imgUrl = "";
     },
+    // 插入用户
     saveUser(){
       this.addUserFormVisible = false;
       console.log(this.addUser);
@@ -276,6 +275,7 @@ export default {
       })
       .catch(e=>{console.log(e)});
     },
+    // 展示新增用户表
     showAddUser(){
       this.addUserFormVisible = true;
     },
@@ -285,6 +285,7 @@ export default {
       this.imgUrl = res.data;
       this.addUser.imgUrl = res.data;
     },
+    // 展示更改表
     showModifyForm(row){
       this.updateUserFormVisible = true;
       this.updateUser = row;
@@ -301,11 +302,13 @@ export default {
       this.imgUrl = res.data;
       this.updateUser.imgUrl = res.data;
     },
+    // 关闭更新表
     cancelUpdateUser(){
       this.updateUserFormVisible = false;
       
       this.getPage();
     },
+    // 更改用户
     modifyUser(){
       console.log(this.selectRoleList)
       console.log(this.updateUser);
@@ -324,6 +327,7 @@ export default {
       })
       .catch(e=>{console.log(e)});
     },
+    // 删除按钮
     deleteData(row){
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         
@@ -344,6 +348,7 @@ export default {
 
         });
     },
+    // 删除用户
     deleteUser(row){
       this.$axios.get('/user/delete',{params:{"id":row.id}})
           .then(res=>{
@@ -358,6 +363,7 @@ export default {
           })
           .catch(e=>{console.log(e)});
     },
+    // 获取权限
     getPermList(){
       this.$axios.get("/user/permList",{params:{"id":sessionStorage.getItem("userId")}})
       .then((res)=>{
@@ -366,6 +372,7 @@ export default {
       })
       .catch(e=>{console.log(e)});
     },
+    // 分配角色
     changeRole(row){
       this.roleFormVisible = true;
       this.roleForm.userId = row.id;
@@ -383,10 +390,29 @@ export default {
       })
       console.log(row)
     },
+    // 分配角色2
+    changeRole2(row){
+      this.roleForm.userId = row.id;
+
+      this.$axios.get('/user/getUserRoleByUserId',{params:{"userId":row.id}})
+      .then(res=>{
+        let data = res.data;
+        console.log(data);
+        if(data.code==200){
+          this.roleForm.roleId = data.data.map((e)=>{return e.roleId});
+        }
+      })
+      .catch(err=>{this.$message.error("请求失败");
+        console.log(err);
+      })
+      console.log(row)
+    },
+    // 关闭角色分配表
     cancelRoleForm(){
       this.roleFormVisible = false;
       console.log(this.roleForm.roleId);
     },
+    //分配权限
     saveRoleForm(){
       console.log(this.roleForm);
       let params = {

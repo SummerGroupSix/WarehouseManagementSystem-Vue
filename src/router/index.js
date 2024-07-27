@@ -2,9 +2,13 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import UserLogin from '../views/UserLogin.vue'
 import UserIndex from '../views/index/UserIndex.vue'
-import roleList from './roleList.vue'
+import roleList from '../views/index/roleList.vue'
 import permList from '../views/index/permList.vue'
 import userList from '../views/index/userList.vue'
+import HomePage from '@/views/index/HomePage.vue'
+import depotList from '../views/index/depotList.vue'
+import productList from '../views/index/productList.vue'
+import depotStorage from '../views/index/depotStorage.vue'
 
 Vue.use(VueRouter)
 
@@ -23,9 +27,14 @@ const routes =
   {
     path: '/Sys',
     name: 'UserIndex',
-    redirect:'/Sys/userList',
+    redirect:'/Sys/home',
     component: UserIndex,
     children:[
+      {
+        path: 'home',
+        name: 'HomePage',
+        component: HomePage
+      },
       {
         path: 'userList',
         name: 'userList',
@@ -40,6 +49,21 @@ const routes =
         path: 'permList',
         name: 'permList',
         component: permList
+      },
+      {
+        path: 'depotList',
+        name: 'depotList',
+        component: depotList
+      },
+      {
+        path: 'productList',
+        name: 'productList',
+        component: productList
+      },
+      {
+        path: 'depotStorage',
+        name: 'depotStorage',
+        component: depotStorage,
       }
     ]
   },

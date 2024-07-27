@@ -4,6 +4,10 @@ import router from './router'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import axios from 'axios';
+import 'echarts';
+import Echarts from 'vue-echarts';
+/* eslint-disable vue/multi-word-component-names */
+Vue.component("Echarts",Echarts);
 
 Vue.use(ElementUI);
 Vue.config.productionTip = false;

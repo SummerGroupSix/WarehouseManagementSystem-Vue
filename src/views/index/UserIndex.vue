@@ -7,22 +7,34 @@
         background-color="#545c64"
         text-color="#fff"
         active-text-color="#ffd04b"
-        router>
+        router
+      >
+        <!-- 标题 -->
         <h2>权限管理系统</h2>
-        <el-submenu :index="menu.permUrl" v-for="(menu) in menuList" :key="menu.id">
+        <!-- 侧边栏 -->
+        <el-submenu
+          :index="menu.permUrl"
+          v-for="menu in menuList"
+          :key="menu.id"
+        >
           <template slot="title">
             <i class="el-icon-s-custom"></i>
-            <span>{{menu.permName}}</span>
+            <span>{{ menu.permName }}</span>
           </template>
-          <el-menu-item-group v-if="menu.children.length > 0 ">
-            <el-menu-item :index="child.permUrl" v-for="(child) in menu.children" :key="child.id">
-              {{child.permName}}
+          <el-menu-item-group v-if="menu.children.length > 0">
+            <el-menu-item
+              :index="child.permUrl"
+              v-for="child in menu.children"
+              :key="child.id"
+            >
+              {{ child.permName }}
             </el-menu-item>
           </el-menu-item-group>
         </el-submenu>
       </el-menu>
     </el-aside>
     <el-container>
+      <!-- 顶tab栏 -->
       <el-header>
         <div></div>
         <div class="rightContent">
@@ -32,13 +44,14 @@
             mode="horizontal"
             background-color="#333"
             text-color="#fff"
-            active-text-color="#ffd04b">
+            active-text-color="#ffd04b"
+          >
             <el-dropdown @command="logout">
-              <span class="el-dropdown-link" >
-                {{username}}<i class="el-icon-arrow-down el-icon--right"></i>
+              <span class="el-dropdown-link">
+                {{ username }}<i class="el-icon-arrow-down el-icon--right"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item > 退出登录</el-dropdown-item>
+                <el-dropdown-item> 退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </el-menu>
@@ -52,80 +65,83 @@
 </template>
 
 <script>
-import PubSub from 'pubsub-js';
+import PubSub from "pubsub-js";
 export default {
-  name: 'UserIndex',
-  components: {
-    
-  },
-  data(){
+  name: "UserIndex",
+  components: {},
+  data() {
     return {
-      activeIndex:"1",
-      menuList:[],
-      username:""
-    }
+      activeIndex: "1",
+      menuList: [],
+      username: "",
+    };
   },
-  methods:{
-    getMenuByUserId(){
+  methods: {
+    //获取用户菜单
+    getMenuByUserId() {
       //从缓存获取userId
       let params = {
-        userId:sessionStorage.getItem("userId")
-      }
+        userId: sessionStorage.getItem("userId"),
+      };
 
       //发送请求
-      this.$axios.get('/user/menu',{params:params})
-      .then(res=>{
-        console.log(res);
-        let data = res.data;
-        this.menuList = data.data;
-      })
-      .catch(err=>{
-        this.$message.error("请求失败");
-        console.log(err);
-      })
+      this.$axios
+        .get("/user/menu", { params: params })
+        .then((res) => {
+          console.log(res);
+          let data = res.data;
+          this.menuList = data.data;
+        })
+        .catch((err) => {
+          this.$message.error("请求失败");
+          console.log(err);
+        });
     },
-    getUserInfo(){
+    //获取用户名
+    getUserInfo() {
       let params = {
-        userId:sessionStorage.getItem("userId")
-      }
+        userId: sessionStorage.getItem("userId"),
+      };
 
-      //发送请求
-      this.$axios.get('/user/info',{params:params})
-      .then(res=>{
-        console.log(res);
-        let data = res.data;
-        if(data.code==200){
-          this.username = data.data.username;
-        }
-      })
-      .catch(err=>{this.$message.error("请求失败");
-        console.log(err);
-      })
+      this.$axios
+        .get("/user/info", { params: params })
+        .then((res) => {
+          console.log(res);
+          let data = res.data;
+          if (data.code == 200) {
+            this.username = data.data.username;
+          }
+        })
+        .catch((err) => {
+          this.$message.error("请求失败");
+          console.log(err);
+        });
     },
-    logout(){
+    //登出
+    logout() {
       sessionStorage.clear();
-      this.$router.push('/');
-    }
+      this.$router.push("/");
+    },
   },
-  mounted(){
+  mounted() {
     this.getMenuByUserId();
     this.getUserInfo();
-    PubSub.subscribe("updatePermList",(e)=>{
-      console.log(e)
+    PubSub.subscribe("updatePermList", (e) => {
+      console.log(e);
       console.log("updatePermList");
       this.getMenuByUserId();
-    })
-  }
-}
+    });
+  },
+};
 </script>
 <style lang="less" scoped>
-.el-dropdown{
+.el-dropdown {
   color: white;
 }
-.rightContent{
+.rightContent {
   padding-right: 30px;
 }
-.el-container{
+.el-container {
   height: 100vh;
   border: 0;
   margin: 0;
@@ -145,27 +161,23 @@ export default {
 }
 
 .el-aside {
-  background-color: #D3DCE6;
+  background-color: #d3dce6;
   color: #333;
   text-align: center;
   line-height: 200px;
   border-right: 0;
-
 }
 h2 {
   font-size: 20px;
   height: 200px;
   margin: 0;
-  color: #E9EEF3;
+  color: #e9eef3;
 }
 .el-menu-vertical-demo {
   height: 100vh;
   margin: 0;
   padding: 0;
   border: 0;
-}
-.el-main {
-  
 }
 
 body > .el-container {
