@@ -27,7 +27,7 @@
           <el-button type="text" size="small" @click="showModifyForm(scope.row)">修改</el-button>
           <el-button type="text" size="small" @click="deleteData(scope.row)">删除</el-button>
           <el-button type="text" size="small" @click="inData(scope.row)">入库</el-button>
-          <el-button type="text" size="small" @click="outData(scope.row)">出库</el-button>
+          <!-- <el-button type="text" size="small" @click="outData(scope.row)">出库</el-button> -->
         </template>
       </el-table-column>
     </el-table>
@@ -126,7 +126,7 @@
     </el-dialog> 
 
     <!-- 出库 -->
-    <el-dialog :visible.sync="outDialogVisible" title="出库" @close="resetOutForm">  
+    <!-- <el-dialog :visible.sync="outDialogVisible" title="出库" @close="resetOutForm">  
       <el-form :model="outForm" ref="outForm">  
         <el-form-item label="产品ID" :label-width="formLabelWidth">  
           <el-input v-model="outForm.productId" placeholder="请输入产品ID" disabled></el-input>  
@@ -139,7 +139,7 @@
         <el-button @click="outDialogVisible = false">取 消</el-button>  
         <el-button type="primary" @click="submitOutData">确 定</el-button>  
       </span>  
-    </el-dialog>  
+    </el-dialog>   -->
   </div>
 </template>
 
@@ -151,8 +151,8 @@ export default {
       currentPage: 1,
       pageSize:5,
       total:0,
-      id:"",
       productName:"",
+      id:"",
       addProductFormVisible:false,
       updateProductFormVisible:false,
       products: [], // 产品列表  
@@ -177,10 +177,10 @@ export default {
         depotName: '',  
         quantity: ''  
       },  
-      outForm: {  
-        productId: '',  
-        quantity: ''  
-      },  
+      // outForm: {  
+      //   productId: '',  
+      //   quantity: ''  
+      // },  
       productList:[],
       formLabelWidth:"120px"
     };
@@ -300,7 +300,7 @@ export default {
           .catch(e=>{console.log(e)});
     },
     inData(row) {  
-      this.inForm.productId = row.productId; // 设置入库产品ID  
+      this.inForm.productId = row.id; // 设置入库产品ID  
       this.dialogVisible = true; // 打开入库对话框  
     },  
     submitInData() {  
@@ -318,31 +318,31 @@ export default {
         })
         .catch(e=>{console.log(e)});
     },  
-    outData(row) {  
-      this.outForm.productId = row.productId; // 设置出库产品ID  
-      this.outDialogVisible = true; // 打开出库对话框  
-    },  
-    submitOutData() {  
-      this.$axios.post('/product/out', this.outForm)  
-        .then(res=>{
-            let data = res.data;
-            if(data.code == 200){
-            this.$message.success(data.msg);
-            this.outDialogVisible = false;  
-            this.getPage(); // 刷新产品列表  
-            }
-            else{
-            this.$message.error(data.msg);
-            }
-        })
-        .catch(e=>{console.log(e)});
-    },  
+    // outData(row) {  
+    //   this.outForm.productId = row.productId; // 设置出库产品ID  
+    //   this.outDialogVisible = true; // 打开出库对话框  
+    // },  
+    // submitOutData() {  
+    //   this.$axios.post('/product/out', this.outForm)  
+    //     .then(res=>{
+    //         let data = res.data;
+    //         if(data.code == 200){
+    //         this.$message.success(data.msg);
+    //         this.outDialogVisible = false;  
+    //         this.getPage(); // 刷新产品列表  
+    //         }
+    //         else{
+    //         this.$message.error(data.msg);
+    //         }
+    //     })
+    //     .catch(e=>{console.log(e)});
+    // },  
     resetInForm() {  
       this.inForm = { productId: '', depotName: '', quantity: '' }; // 重置入库表单  
     },  
-    resetOutForm() {  
-      this.outForm = { productId: '', quantity: '' }; // 重置出库表单  
-    },
+    // resetOutForm() {  
+    //   this.outForm = { productId: '', quantity: '' }; // 重置出库表单  
+    // }  
   },
   mounted(){
     this.getPage();

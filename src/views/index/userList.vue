@@ -47,28 +47,28 @@
 
     <!-- Form -->
     <el-dialog title="添加用户信息" :visible.sync="addUserFormVisible">
-      <el-form :model="addUser">
-        <el-form-item label="用户名" :label-width="formLabelWidth">
+      <el-form :model="addUser" :rules="rules" ref="formRef">
+        <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
           <el-input v-model="addUser.username" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="初始密码" :label-width="formLabelWidth">
+        <el-form-item label="初始密码" :label-width="formLabelWidth" prop="password">
           <el-input v-model="addUser.password" autocomplete="off" show-password></el-input>
         </el-form-item>
-        <el-form-item label="性别" :label-width="formLabelWidth">
+        <el-form-item label="性别" :label-width="formLabelWidth" prop="sex">
           <el-select v-model="addUser.sex" placeholder="请选择性别">
             <el-option label="男" value="男"></el-option>
             <el-option label="女" value="女"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1">
-          <el-select v-model="selectRoleList" placeholder="请选择角色" multiple>
+        <el-form-item label="角色" :label-width="formLabelWidth" v-if="permList.indexOf('user:role')!==-1" prop="selectRoleList">
+          <el-select v-model="roleForm.roleId" placeholder="请选择角色" multiple>
             <el-option v-for="o in roleList" :key="o.id" :label="o.roleName" :value="o.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="年龄" :label-width="formLabelWidth">
+        <el-form-item label="年龄" :label-width="formLabelWidth" prop="age">
           <el-input v-model="addUser.age" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="地址" :label-width="formLabelWidth">
+        <el-form-item label="地址" :label-width="formLabelWidth" prop="address">
           <el-input v-model="addUser.address" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="头像" :label-width="formLabelWidth">
@@ -95,14 +95,14 @@
 
     <!-- Form -->
     <el-dialog title="修改用户信息" :visible.sync="updateUserFormVisible">
-      <el-form :model="updateUser">
-        <el-form-item label="用户ID" :label-width="formLabelWidth">
+      <el-form :model="updateUser" :rules="updateRules">
+        <el-form-item label="用户ID" :label-width="formLabelWidth" prop="id">
           <el-input v-model="updateUser.id" autocomplete="off" disabled></el-input>
         </el-form-item>
-        <el-form-item label="用户名" :label-width="formLabelWidth">
+        <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
           <el-input v-model="updateUser.username" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="初始密码" :label-width="formLabelWidth">
+        <el-form-item label="初始密码" :label-width="formLabelWidth" prop="password">
           <el-input v-model="updateUser.password" autocomplete="off" show-password></el-input>
         </el-form-item>
         <el-form-item label="性别" :label-width="formLabelWidth">
@@ -118,10 +118,10 @@
             </el-select>
           </el-form-item>
         </el-form>
-        <el-form-item label="年龄" :label-width="formLabelWidth">
+        <el-form-item label="年龄" :label-width="formLabelWidth" prop="age">
           <el-input v-model="updateUser.age" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="地址" :label-width="formLabelWidth">
+        <el-form-item label="地址" :label-width="formLabelWidth" prop="address">
           <el-input v-model="updateUser.address" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="头像" :label-width="formLabelWidth">
@@ -166,6 +166,22 @@
 <script>
 export default {
   data() {
+      var checkAge = (rule, value, callback) => {
+        if (!value) {
+          return callback(new Error('年龄不能为空'));
+        }
+        setTimeout(() => {
+          if (!Number.isInteger(Number.parseInt(value))) {
+            callback(new Error('请输入数字值'));
+          } else {
+            if (value < 0) {
+              callback(new Error('请输入正确年龄'));
+            } else {
+              callback();
+            }
+          }
+        }, 100);
+      };
     return {
       tableData: [],
       currentPage: 1,
@@ -199,10 +215,50 @@ export default {
         roleId:[]
       },
       permList:[],
-      formLabelWidth:"120px"
+      formLabelWidth:"120px",
+      rules: {
+          username: [  
+						{ required: true, message: '用户名不能为空', trigger: 'blur' }  
+					],
+					age: [  
+            { validator: checkAge, trigger: 'blur' },
+            { required: true, message: '年龄不能为空', trigger: 'blur' }  
+					],
+          password: [  
+            { required: true, message: '密码不能为空', trigger: 'blur' }  
+					],
+          roleName: [  
+						{ required: true, message: '创建者不能为空', trigger: 'blur' }  
+					],
+			},
+      updateRules: {
+          username: [  
+						{ required: true, message: '用户名不能为空', trigger: 'blur' }  
+					],
+					age: [  
+            { validator: checkAge, trigger: 'blur' },
+            { required: true, message: '年龄不能为空', trigger: 'blur' }  
+					],
+          password: [  
+            { required: true, message: '密码不能为空', trigger: 'blur' }  
+					],
+          roleName: [  
+						{ required: true, message: '创建者不能为空', trigger: 'blur' }  
+					],
+      }
     };
   },
   methods:{
+    submitForm() {  
+			this.$refs.formRef.validate((valid) => {  
+				if (valid) {  
+				console.log("表单验证成功!")
+				} else {  
+				console.log('表单验证失败!');  
+				return false;  
+				}  
+			});  
+		}, 
     // 分页查找所有用户
     getPage(){
       let params = {
@@ -259,6 +315,8 @@ export default {
     },
     // 插入用户
     saveUser(){
+      console.log(this.selectRoleList)
+      this.saveRoleForm();
       this.addUserFormVisible = false;
       console.log(this.addUser);
       this.$axios.post('/user/add',this.addUser)
@@ -312,6 +370,7 @@ export default {
     modifyUser(){
       console.log(this.selectRoleList)
       console.log(this.updateUser);
+      this.saveRoleForm();
       this.$axios.post('/user/update',this.updateUser)
       .then(res=>{
         let data = res.data;
@@ -376,7 +435,8 @@ export default {
     changeRole(row){
       this.roleFormVisible = true;
       this.roleForm.userId = row.id;
-
+      console.log(this.roleForm.roleId);
+      
       this.$axios.get('/user/getUserRoleByUserId',{params:{"userId":row.id}})
       .then(res=>{
         let data = res.data;
@@ -393,7 +453,6 @@ export default {
     // 分配角色2
     changeRole2(row){
       this.roleForm.userId = row.id;
-
       this.$axios.get('/user/getUserRoleByUserId',{params:{"userId":row.id}})
       .then(res=>{
         let data = res.data;
@@ -415,6 +474,10 @@ export default {
     //分配权限
     saveRoleForm(){
       console.log(this.roleForm);
+      if(this.roleForm.roleId.length==0){
+        this.$message.error("选择角色不能为空");
+        return;
+      }
       let params = {
         userId:this.roleForm.userId,
         roleId:this.roleForm.roleId
@@ -425,6 +488,7 @@ export default {
         let data = res.data;
         if(data.code==200){
           this.$message.success("分配权限成功");
+          this.roleForm.roleId = [];
         }
       })
       .catch(err=>{this.$message.error("请求失败");

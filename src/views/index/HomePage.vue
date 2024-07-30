@@ -3,7 +3,10 @@
         <el-col :span="8" >
             <el-card class="box-card" style="padding-right:10px">
                 <div class="user">
-                    <img :src="userData.imgUrl">
+                    <img :src="userData.imgUrl" v-if="userData.imgUrl">
+                    <div class="block" v-if="!userData.imgUrl">
+                        <span>默认</span>
+                    </div>
                     <div class="userinfo">
                         <p class="name">{{userData.username}}</p>
                         <p class="access">{{userData.username}}</p>
@@ -109,60 +112,90 @@ export default {
         transformDataToMatrix(data) {  
             //图3
             // 提取所有唯一的产品名  
-            const uniqueProducts = [...new Set(data.map(item => item.product_name))];  
+            let uniqueProducts = [...new Set(data.map(item => item.product_name))];  
             
             // 初始化二维数组  
-            const transformedData = [];  
-            const depotNames = [...new Set(data.map(item => item.depot_name))];  
+            let transformedData = [];  
+            let depotNames = [...new Set(data.map(item => item.depot_name))];  
             depotNames.forEach(() => {  
                  const row = []; // 第一列是仓库名  
                 // 初始化所有产品的总量为0  
                 row.push(...uniqueProducts.map(() => 0));  
                 transformedData.push(row);  
             });  
-                
+            console.log(uniqueProducts)
+            console.log(depotNames)
+            console.log(data)
             // 填充二维数组  
             data.forEach(item => {  
+                console.log(item)
                 const depotIndex = depotNames.findIndex(row => row === item.depot_name);  
                 const productIndex = uniqueProducts.findIndex(product => product === item.product_name);  
                 if (depotIndex !== -1 && productIndex !== -1) {  
-                    transformedData[depotIndex][productIndex] = item.total_quantity; // +1 跳过仓库名  
+                    transformedData[depotIndex][productIndex] = item.total_quantity; 
                 }  
             });  
+            console.log(transformedData)
             
-            const rawData = transformedData;
-            const totalData = [];
-            for (let i = 0; i < rawData[0].length; ++i) {
+            let rawData = transformedData;
+            let totalData = [];
+            for (let i = 0; i < rawData.length; ++i) {
             let sum = 0;
-            for (let j = 0; j < rawData.length; ++j) {
-                sum += rawData[j][i];
+            for (let j = 0; j < rawData[0].length; ++j) {
+                sum += rawData[i][j];
             }
             totalData.push(sum);
             }
-            const grid = {
-            left: 100,
-            right: 100,
-            top: 50,
-            bottom: 50
+            console.log(totalData)
+            let grid = {
+                left: 100,
+                right: 100,
+                top: 50,
+                bottom: 50
             };
-            const series = uniqueProducts.map((name, sid) => {
+            console.log(uniqueProducts)
+            let series = uniqueProducts.map((name, sid) => {
                 return {
                     name,
                     type: 'bar',
                     stack: 'total',
                     barWidth: '60%',
-                    label: {
-                    show: true,
-                    formatter: (params) => Math.round(params.value * 1000) / 10 + '%'
+                    emphasis: {
+                        itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
                     },
-                    data: rawData[sid].map((d, did) =>
+                    label: {
+                        show: true,
+                        formatter: (params) => Math.round(params.value * 1000) / 10 + '%'
+                    },
+                    data: transformedData
+                    .map(e=>{return e[sid]})
+                    .map((d, did) =>
                     totalData[did] <= 0 ? 0 : d / totalData[did]
                     )
                 };
             });
-            this.option3.grid = grid;
-            this.option3.series = series;
-            this.option3.xAxis.data = depotNames;
+            this.option3 = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: (params) => Math.round(params.value * 1000) / 10 + '%'
+                },
+                legend: {
+                    selectedMode: true
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: depotNames
+                },
+                series:series,
+                grid:grid
+            },
             console.log(transformedData);
 
             //图2
@@ -180,10 +213,21 @@ export default {
                 },
                 series: [
                     {
-                    data: sumStorage,
-                    type: "bar"
+                        label: {
+                            show: true,
+                            formatter: (sumStorage) => sumStorage.value+" 件"
+                        },
+                        data: sumStorage,
+                        type: "bar"
                     }
-                ]
+                ],
+                legend: {
+                    depotNames,
+                    selectedMode: true,
+                    orient: 'vertical',
+                    left: 'left'
+                },
+                
             };
         },
         transPieData(data){
@@ -208,7 +252,7 @@ export default {
             },
             series: [
                 {
-                name: 'Access From',
+                name: '品牌占比',
                 type: 'pie',
                 radius: '50%',
                 data: s,
@@ -218,15 +262,13 @@ export default {
                     shadowOffsetX: 0,
                     shadowColor: 'rgba(0, 0, 0, 0.5)'
                     }
-                }
+                },
                 }
             ]
             }
-        }
-        
-    },
-    mounted(){
-        //获取用户信息
+        },
+        initData(){
+            //获取用户信息
         let params = {
             id:sessionStorage.getItem("userId")
         }
@@ -268,6 +310,10 @@ export default {
           this.$message.error("请求失败");
           console.log(err);
         });
+        }
+    },
+    mounted(){
+        this.initData();
     },
     beforeDestroy() {  
         
@@ -317,6 +363,15 @@ export default {
         margin-right: 40px;
         width: 150px;
         border-radius: 50%;
+    }
+    .block{
+        border: solid black 1px;
+        height: 150px;
+        margin-right: 40px;
+        width: 150px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 100px;
     }
     .userinfo{
         .name{

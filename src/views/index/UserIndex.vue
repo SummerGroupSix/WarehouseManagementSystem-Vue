@@ -77,6 +77,19 @@ export default {
     };
   },
   methods: {
+
+    removeDump(tempArr) {
+        let newArr = [];
+        for (let i = 0; i < tempArr.length; i++) {
+            if (newArr.indexOf(tempArr[i].id) == -1) {
+                newArr.push(tempArr[i].id);
+            } else {
+                tempArr.splice(i, 1);
+                i--;
+            }
+        }
+        return tempArr;
+    },
     //获取用户菜单
     getMenuByUserId() {
       //从缓存获取userId
@@ -90,7 +103,8 @@ export default {
         .then((res) => {
           console.log(res);
           let data = res.data;
-          this.menuList = data.data;
+          this.menuList = this.removeDump(data.data);
+          console.log(data.data)
         })
         .catch((err) => {
           this.$message.error("请求失败");

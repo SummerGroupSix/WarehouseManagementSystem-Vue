@@ -16,7 +16,7 @@
       <el-table-column prop="depotName" label="仓库名称"></el-table-column>
       <el-table-column prop="depotAddress" label="仓库地址"></el-table-column>
       <el-table-column prop="depotCapacity" label="仓库容量"></el-table-column>
-      
+      <el-table-column prop="depotRemain" label="仓库剩余容量"></el-table-column>
       <el-table-column fixed="right" label="操作">
         <template slot-scope="scope">
           <el-button type="text" size="small" @click="showModifyForm(scope.row)">修改</el-button>
@@ -229,7 +229,7 @@ export default {
           .catch(e=>{console.log(e)});
     },
     openDepotStorage(row){
-      this.$router.replace({name:'depotStorage',params: {id:row.id}})
+      this.$router.push('/Sys/depotStorage/' + row.id);
     }
     // getDepotList(){
     //   this.$axios.get("/depot/list/{id}",{params:{"id":sessionStorage.getItem("id")}})

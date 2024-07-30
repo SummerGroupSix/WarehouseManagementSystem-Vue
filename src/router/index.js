@@ -61,7 +61,7 @@ const routes =
         component: productList
       },
       {
-        path: 'depotStorage',
+        path: 'depotStorage/:id',
         name: 'depotStorage',
         component: depotStorage,
       }

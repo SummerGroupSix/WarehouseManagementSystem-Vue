@@ -2,7 +2,7 @@
   <div class="outter">
     <el-card class="card">
       <div>
-        <h1>权限管理系统</h1>
+        <h1>小仓熟管理系统</h1>
       </div>
       <el-form>
         <el-form-item>
