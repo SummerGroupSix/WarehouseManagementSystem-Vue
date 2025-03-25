@@ -1,6 +1,6 @@
 ### WarehouseManagement-Vue
 
-**地址**：
+**地址**：https://github.com/SummerGroupSix/WarehouseManagementSystem-Vue.git
 
 **项目描述**：
 通过vue2搭建的仓库管理系统，使用element-ui和echarts实现前端视图展示。
